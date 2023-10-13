@@ -1,0 +1,17 @@
+{
+  "name": "my_package",
+  "bundlesize": [
+    {
+      "path": "/Users/aditya.septiadi/Project/personal/module-federation-research/app-1/dist/*.js",
+      "maxSize": "100"
+    },
+    {
+      "path": "/Users/aditya.septiadi/Project/personal/module-federation-research/app-1/dist/**/vendors*.js",
+      "maxSize": "100"
+    },
+    {
+      "path": "/Users/aditya.septiadi/Project/personal/module-federation-research/app-1/dist/client/remote-entry.js",
+      "maxSize": "100"
+    }
+  ]
+}
