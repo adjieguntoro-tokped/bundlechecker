@@ -1,8 +1,9 @@
 #![deny(clippy::all)]
 
 use fxhash::FxHashMap;
-use serde::Deserialize;
-use std::{fs::File, io::BufReader, os::unix::prelude::MetadataExt, path::Path};
+use std::{os::unix::prelude::MetadataExt, path::Path};
+
+mod config;
 
 #[macro_use]
 extern crate napi_derive;
@@ -16,19 +17,6 @@ pub struct CheckBundlerInput {
   pub config_path: String,
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Config {
-  path: String,
-  max_size: String,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ConfigFile {
-  bundlesize: Vec<Config>,
-}
-
 fn bytes_to_kilobytes(bytes: u64) -> f64 {
   (bytes as f64) / 1024.0
 }
@@ -39,9 +27,7 @@ pub fn check_bundler(input: CheckBundlerInput) {
     file_map: Default::default(),
   };
 
-  let pkg_json_file = File::open(input.config_path).expect("file cannot be open");
-  let reader = BufReader::new(pkg_json_file);
-  let config: ConfigFile = serde_json::from_reader(reader).expect("cannot serialze");
+  let config = config::get_config(&input.config_path);
 
   config.bundlesize.iter().for_each(|c| {
     let path = &c.path;
