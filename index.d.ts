@@ -5,5 +5,6 @@
 
 export interface CheckBundlerInput {
   configPath: string
+  compression: string
 }
 export function checkBundler(input: CheckBundlerInput): void

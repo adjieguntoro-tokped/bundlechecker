@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::{fs::File, io::BufReader};
+use std::fs;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,8 +15,7 @@ pub struct ConfigFile {
 }
 
 pub fn get_config(path: &str) -> ConfigFile {
-  let pkg_json_file = File::open(path).expect("file cannot be open");
-  let reader = BufReader::new(pkg_json_file);
-  let config: ConfigFile = serde_json::from_reader(reader).expect("cannot serialze");
+  let json_str = fs::read_to_string(path).expect("file cannot be open");
+  let config: ConfigFile = serde_json::from_str(&json_str).expect("cannot serialze");
   config
 }
