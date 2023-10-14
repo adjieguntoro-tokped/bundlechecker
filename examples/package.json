@@ -1,0 +1,9 @@
+{
+  "name": "my_package",
+  "bundlesize": [
+    {
+      "path": "/users/aditya.septiadi/project/tokopedia/tokopedia-lite-phoenix/build/client/*.js",
+      "maxSize": "100 kB"
+    }
+  ]
+}

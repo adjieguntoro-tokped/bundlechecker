@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.75"
+brotli = "3.4.0"
 fxhash = "0.2.1"
 globwalk = "0.8.1"
 is-glob = "0.1.0"

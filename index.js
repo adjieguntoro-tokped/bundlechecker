@@ -252,6 +252,6 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { checkBundler } = nativeBinding
+const { checkBundlerSync } = nativeBinding
 
-module.exports.checkBundler = checkBundler
+module.exports.checkBundlerSync = checkBundlerSync

@@ -1,5 +1,6 @@
 #![deny(clippy::all)]
 
+use napi::Result;
 use rayon::prelude::*;
 use std::{
   process,
@@ -19,8 +20,13 @@ pub struct CheckBundlerInput {
   pub compression: String,
 }
 
+#[napi(object)]
+pub struct CheckBundlerOutput {
+  pub result: fxhash::FxHashMap<String, analyze::AnalyzeResult>,
+}
+
 #[napi]
-pub fn check_bundler(input: CheckBundlerInput) {
+pub fn check_bundler_sync(input: CheckBundlerInput) -> Result<CheckBundlerOutput> {
   let compression = files::get_file_compression(&input.compression);
   let config = config::get_config(&input.config_path);
 
@@ -46,13 +52,11 @@ pub fn check_bundler(input: CheckBundlerInput) {
     }
   });
 
-  analyzer
-    .lock()
-    .unwrap()
-    .f_size_map
-    .par_iter()
-    .for_each(|v| {
-      let (f_name, result) = v;
-      println!("file_name={}, result={:?}", f_name, result);
-    });
+  let bind = analyzer.lock().unwrap();
+  // find better solution for this memory copy
+  let f_size_map_res = bind.f_size_map.lock().unwrap().clone();
+
+  Ok(CheckBundlerOutput {
+    result: f_size_map_res,
+  })
 }

@@ -46,7 +46,7 @@ pub enum FileCompression {
 
 pub fn get_file_compression(compression: &str) -> FileCompression {
   match compression {
-    "br" => FileCompression::Brotli,
+    "brotli" => FileCompression::Brotli,
     _ => FileCompression::UnCompressed,
   }
 }
