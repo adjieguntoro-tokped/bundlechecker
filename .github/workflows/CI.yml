@@ -3,19 +3,8 @@ env:
   DEBUG: napi:*
   APP_NAME: bundlechecker
   MACOSX_DEPLOYMENT_TARGET: '10.13'
-'on':
-  push:
-    branches:
-      - main
-    tags-ignore:
-      - '**'
-    paths-ignore:
-      - '**/*.md'
-      - LICENSE
-      - '**/*.gitignore'
-      - .editorconfig
-      - docs/**
-  pull_request: null
+on:
+  workflow_dispatch:
 jobs:
   build:
     strategy:

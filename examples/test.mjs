@@ -1,8 +1,6 @@
 import { checkBundlerSync } from "../index.js";
 
-const { result } = checkBundlerSync({
+checkBundlerSync({
   configPath: "./package.json",
-  compression: "",
+  compression: "brotli",
 });
-
-console.log(result);
