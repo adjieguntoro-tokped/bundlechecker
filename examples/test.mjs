@@ -2,5 +2,6 @@ import { checkBundlerSync } from "../index.js";
 
 checkBundlerSync({
   configPath: "./package.json",
-  compression: "brotli",
+  compression: "", // can be "brotli"
+  reporter: "",
 });

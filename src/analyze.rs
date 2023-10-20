@@ -1,10 +1,11 @@
+use std::sync::{Arc, Mutex};
+
 use crate::files;
-use anyhow::Result;
+use rayon::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct AnalyzeReport {
   pub pass: bool,
-  pub file_name: String,
   pub actual_file_size: f64,
   pub budget_size: f64,
   pub error: Option<String>,
@@ -12,15 +13,11 @@ pub struct AnalyzeReport {
 
 pub struct Analyzer {
   pub bundlefiles: fxhash::FxHashMap<String, files::File>,
-  report: fxhash::FxHashMap<String, AnalyzeReport>,
 }
 
 impl Analyzer {
   pub fn new(bundlefiles: fxhash::FxHashMap<String, files::File>) -> Self {
-    Analyzer {
-      bundlefiles,
-      report: Default::default(),
-    }
+    Analyzer { bundlefiles }
   }
 
   fn is_budget_pass(&self, actual_file_size: f64, budget_file_size: f64) -> bool {
@@ -30,8 +27,34 @@ impl Analyzer {
     true
   }
 
-  // TODO: analyze shit
-  pub fn analze(&mut self) -> Result<()> {
-    Ok(())
+  pub fn analyze(&mut self) -> fxhash::FxHashMap<String, AnalyzeReport> {
+    let analyze_result = Arc::new(Mutex::new(fxhash::FxHashMap::default()));
+    self.bundlefiles.par_iter().for_each(|f| {
+      let (file_name, file) = f;
+      let file_error = &file.error;
+      if let Some(err) = file_error {
+        analyze_result.lock().unwrap().insert(
+          file_name.to_string(),
+          AnalyzeReport {
+            budget_size: file.budget_size,
+            actual_file_size: file.actual_file_size,
+            pass: false,
+            error: Some(err.to_string()),
+          },
+        );
+      } else {
+        analyze_result.lock().unwrap().insert(
+          file_name.to_string(),
+          AnalyzeReport {
+            budget_size: file.budget_size,
+            actual_file_size: file.actual_file_size,
+            pass: self.is_budget_pass(file.actual_file_size, file.budget_size),
+            error: None,
+          },
+        );
+      }
+    });
+    let result = analyze_result.lock().unwrap();
+    result.to_owned()
   }
 }

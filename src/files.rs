@@ -126,7 +126,7 @@ impl Files {
         path.to_string(),
         File {
           actual_file_size: 0.0,
-          error: Some(format!("pattern is not getting any match")),
+          error: Some(format!("pattern {} is not getting any match", path)),
           budget_size,
         },
       );

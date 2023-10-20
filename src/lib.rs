@@ -2,6 +2,8 @@
 
 use std::process;
 
+use rayon::prelude::*;
+
 mod analyze;
 mod config;
 mod files;
@@ -14,6 +16,7 @@ extern crate napi_derive;
 pub struct CheckBundlerInput {
   pub config_path: String,
   pub compression: String,
+  pub reporter: String,
 }
 
 #[napi]
@@ -25,7 +28,29 @@ pub fn check_bundler_sync(input: CheckBundlerInput) {
 
   match bundle_files {
     Ok(v) => {
-      println!("{}", v.len())
+      let reporter = reporter::get_reporter(&input.reporter);
+      let result = analyze::Analyzer::new(v).analyze();
+
+      if matches!(reporter, reporter::Reporter::StandardOutput) {
+        result.par_iter().for_each(|r| {
+          let (file_name, result) = r;
+          if result.pass {
+            println!(
+              "PASS {file_name}: {} < maxSize {}",
+              result.actual_file_size, result.budget_size,
+            )
+          } else {
+            if result.error.is_some() {
+              println!("ERROR {}", result.error.as_ref().unwrap());
+            } else {
+              println!(
+                "FAIL {file_name}: {} < maxSize {}",
+                result.actual_file_size, result.budget_size,
+              )
+            }
+          }
+        })
+      }
     }
     Err(e) => {
       eprintln!("error: {e}");

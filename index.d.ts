@@ -6,5 +6,6 @@
 export interface CheckBundlerInput {
   configPath: string
   compression: string
+  reporter: string
 }
 export function checkBundlerSync(input: CheckBundlerInput): void
