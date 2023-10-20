@@ -5,6 +5,7 @@ use std::process;
 mod analyze;
 mod config;
 mod files;
+mod reporter;
 
 #[macro_use]
 extern crate napi_derive;

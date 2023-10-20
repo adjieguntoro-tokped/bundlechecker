@@ -1,10 +1,6 @@
 use crate::files;
 use anyhow::Result;
 
-pub enum Reporter {
-  StandardOutput,
-}
-
 #[derive(Debug, Clone)]
 pub struct AnalyzeReport {
   pub pass: bool,
@@ -15,22 +11,13 @@ pub struct AnalyzeReport {
 }
 
 pub struct Analyzer {
-  reporter: Reporter,
   pub bundlefiles: fxhash::FxHashMap<String, files::File>,
   report: fxhash::FxHashMap<String, AnalyzeReport>,
 }
 
-pub fn get_reporter(reporter: &str) -> Reporter {
-  match reporter {
-    "stdout" => Reporter::StandardOutput,
-    _ => Reporter::StandardOutput,
-  }
-}
-
 impl Analyzer {
-  pub fn new(reporter: Reporter, bundlefiles: fxhash::FxHashMap<String, files::File>) -> Self {
+  pub fn new(bundlefiles: fxhash::FxHashMap<String, files::File>) -> Self {
     Analyzer {
-      reporter,
       bundlefiles,
       report: Default::default(),
     }
