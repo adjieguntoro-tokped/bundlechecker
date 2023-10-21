@@ -7,6 +7,8 @@ use rayon::prelude::*;
 pub struct AnalyzeReport {
   pub pass: bool,
   pub actual_file_size: f64,
+  pub size_unit: String,
+  pub compression: String,
   pub budget_size: f64,
   pub error: Option<String>,
 }
@@ -32,12 +34,16 @@ impl Analyzer {
     self.bundlefiles.par_iter().for_each(|f| {
       let (file_name, file) = f;
       let file_error = &file.error;
+      let size_unit = &file.size_unit;
+      let compression = &file.compression;
       if let Some(err) = file_error {
         analyze_result.lock().unwrap().insert(
           file_name.to_string(),
           AnalyzeReport {
             budget_size: file.budget_size,
             actual_file_size: file.actual_file_size,
+            size_unit: size_unit.to_string(),
+            compression: compression.to_string(),
             pass: false,
             error: Some(err.to_string()),
           },
@@ -48,6 +54,8 @@ impl Analyzer {
           AnalyzeReport {
             budget_size: file.budget_size,
             actual_file_size: file.actual_file_size,
+            size_unit: size_unit.to_string(),
+            compression: compression.to_string(),
             pass: self.is_budget_pass(file.actual_file_size, file.budget_size),
             error: None,
           },

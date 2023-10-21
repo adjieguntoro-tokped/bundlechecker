@@ -23,6 +23,12 @@ impl FileUnit {
       Self::Kb(_) => self.bytes_to_kilobytes(file_size),
     }
   }
+
+  pub fn to_string(&self) -> String {
+    match self {
+      Self::Kb(_) => "kB".to_string(),
+    }
+  }
 }
 
 fn get_file_unit(size: &str) -> Option<FileUnit> {
@@ -48,6 +54,15 @@ pub enum FileCompression {
   UnCompressed,
 }
 
+impl FileCompression {
+  pub fn to_string(&self) -> String {
+    match self {
+      FileCompression::UnCompressed => "UnCompressed".to_string(),
+      FileCompression::Brotli => "Brotli".to_string(),
+    }
+  }
+}
+
 pub fn get_file_compression(compression: &str) -> FileCompression {
   match compression {
     "brotli" => FileCompression::Brotli,
@@ -59,6 +74,8 @@ pub fn get_file_compression(compression: &str) -> FileCompression {
 pub struct File {
   pub budget_size: f64,
   pub actual_file_size: f64,
+  pub compression: String,
+  pub size_unit: String,
   pub error: Option<String>,
 }
 
@@ -118,16 +135,17 @@ impl Files {
   ) -> Result<()> {
     let path = &c.path;
     let budget_size = self.convert_max_budget_unit(&c.max_size)?;
-    let file_unit = get_file_unit(&c.max_size);
 
     let mut glob_walker = globwalk::glob(path)?.peekable();
     if glob_walker.peek().is_none() {
       collected_files.lock().unwrap().insert(
         path.to_string(),
         File {
-          actual_file_size: 0.0,
-          error: Some(format!("pattern {} is not getting any match", path)),
           budget_size,
+          actual_file_size: 0.0,
+          size_unit: "".to_string(),
+          compression: "".to_string(),
+          error: Some(format!("pattern {} is not getting any match", path)),
         },
       );
     }
@@ -140,6 +158,8 @@ impl Files {
 
     let _exec = v.par_iter().try_for_each(|dir_entry| -> Result<()> {
       let f_meta = dir_entry.metadata()?;
+      let file_unit = get_file_unit(&c.max_size);
+
       if f_meta.is_file() {
         let f_name = dir_entry.file_name().to_os_string().into_string().unwrap();
         match self.compression {
@@ -151,6 +171,8 @@ impl Files {
                 File {
                   budget_size,
                   actual_file_size,
+                  size_unit: file_unit.unwrap().to_string(),
+                  compression: self.compression.to_string(),
                   error: None,
                 },
               );
@@ -166,6 +188,8 @@ impl Files {
               File {
                 budget_size,
                 actual_file_size,
+                size_unit: file_unit.unwrap().to_string(),
+                compression: self.compression.to_string(),
                 error: None,
               },
             );
@@ -205,9 +229,11 @@ impl Files {
           collected_files.lock().unwrap().insert(
             f_name.to_string_lossy().to_string(),
             File {
-              actual_file_size,
-              error: None,
               budget_size,
+              actual_file_size,
+              size_unit: file_unit.unwrap().to_string(),
+              compression: self.compression.to_string(),
+              error: None,
             },
           );
           return Ok(());
@@ -217,9 +243,11 @@ impl Files {
           collected_files.lock().unwrap().insert(
             f_name.to_string_lossy().to_string(),
             File {
-              actual_file_size,
-              error: None,
               budget_size,
+              actual_file_size,
+              size_unit: file_unit.unwrap().to_string(),
+              compression: self.compression.to_string(),
+              error: None,
             },
           );
           return Ok(());

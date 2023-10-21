@@ -2,7 +2,7 @@
   "name": "my_package",
   "bundlesize": [
     {
-      "path": "**/build/client/*.js",
+      "path": "../index.js",
       "maxSize": "50 kB"
     }
   ]

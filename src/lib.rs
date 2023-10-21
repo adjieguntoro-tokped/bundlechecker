@@ -36,16 +36,24 @@ pub fn check_bundler_sync(input: CheckBundlerInput) {
           let (file_name, result) = r;
           if result.pass {
             println!(
-              "PASS {file_name}: {} < maxSize {}",
-              result.actual_file_size, result.budget_size,
+              "PASS {file_name}: {} {} < maxSize {} {} ({})",
+              result.actual_file_size,
+              result.size_unit,
+              result.budget_size,
+              result.size_unit,
+              result.compression
             )
           } else {
             if result.error.is_some() {
               println!("ERROR {}", result.error.as_ref().unwrap());
             } else {
               println!(
-                "FAIL {file_name}: {} < maxSize {}",
-                result.actual_file_size, result.budget_size,
+                "PASS {file_name}: {} {} > maxSize {} {} ({})",
+                result.actual_file_size,
+                result.size_unit,
+                result.budget_size,
+                result.size_unit,
+                result.compression
               )
             }
           }
