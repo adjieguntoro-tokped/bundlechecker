@@ -4,6 +4,10 @@
     {
       "path": "../index.js",
       "maxSize": "50 kB"
+    },
+    {
+      "path": "../notfound*.js",
+      "maxSize": "10 kB"
     }
   ]
 }

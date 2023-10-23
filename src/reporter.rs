@@ -4,6 +4,7 @@ use crate::analyze;
 use rayon::prelude::*;
 
 pub struct Report {
+  silent: bool,
   pub fail: AtomicUsize,
   pub success: AtomicUsize,
   pub error: AtomicUsize,
@@ -11,8 +12,9 @@ pub struct Report {
 }
 
 impl Report {
-  pub fn new() -> Self {
+  pub fn new(silent: bool) -> Self {
     Report {
+      silent,
       fail: AtomicUsize::new(0),
       success: AtomicUsize::new(0),
       error: AtomicUsize::new(0),
@@ -33,28 +35,34 @@ impl Report {
           .success
           .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
-        println!(
-          "PASS {file_name}: {} {} < maxSize {} {} ({})",
-          report.actual_file_size,
-          report.size_unit,
-          report.budget_size,
-          report.size_unit,
-          report.compression
-        )
-      } else {
-        if report.error.is_some() {
-          self.error.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-          println!("ERROR {}", report.error.as_ref().unwrap());
-        } else {
-          self.fail.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        if !self.silent {
           println!(
-            "FAIL {file_name}: {} {} > maxSize {} {} ({})",
+            "PASS {file_name}: {} {} < maxSize {} {} ({})",
             report.actual_file_size,
             report.size_unit,
             report.budget_size,
             report.size_unit,
             report.compression
           )
+        }
+      } else {
+        if report.error.is_some() {
+          self.error.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+          if !self.silent {
+            println!("ERROR {}", report.error.as_ref().unwrap());
+          }
+        } else {
+          if !self.silent {
+            println!(
+              "FAIL {file_name}: {} {} > maxSize {} {} ({})",
+              report.actual_file_size,
+              report.size_unit,
+              report.budget_size,
+              report.size_unit,
+              report.compression
+            )
+          }
+          self.fail.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         }
       }
     });

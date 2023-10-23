@@ -1,8 +1,8 @@
 #![deny(clippy::all)]
 
-use std::{process, sync::atomic::Ordering};
+use std::sync::atomic::Ordering;
 
-use napi::Result;
+use napi::{Error, Result};
 
 mod analyze;
 mod config;
@@ -17,6 +17,7 @@ pub struct CheckBundlerInput {
   pub config_path: String,
   pub compression: String,
   pub reporter: String,
+  pub silent: Option<bool>,
 }
 
 #[napi(object)]
@@ -43,7 +44,13 @@ pub fn check_bundler_sync(input: CheckBundlerInput) -> Result<CheckBundlerOutput
   match bundle_files {
     Ok(v) => {
       let result = analyze::Analyzer::new(v).analyze();
-      let mut reporter = reporter::Report::new();
+
+      let mut silent_report = true;
+      if input.silent.is_some() {
+        silent_report = input.silent.unwrap();
+      }
+
+      let mut reporter = reporter::Report::new(silent_report);
       let report = reporter.report(&result);
 
       let total = report.total;
@@ -59,10 +66,6 @@ pub fn check_bundler_sync(input: CheckBundlerInput) -> Result<CheckBundlerOutput
       };
       Ok(CheckBundlerOutput { result, summary })
     }
-    Err(e) => {
-      eprintln!("error: {e}");
-      eprintln!("program will exit");
-      process::exit(1)
-    }
+    Err(e) => Err(Error::new(napi::Status::GenericFailure, e.to_string())),
   }
 }

@@ -141,7 +141,7 @@ impl Files {
       collected_files.lock().unwrap().insert(
         path.to_string(),
         File {
-          budget_size,
+          budget_size: 0.0,
           actual_file_size: 0.0,
           size_unit: "".to_string(),
           compression: "".to_string(),
