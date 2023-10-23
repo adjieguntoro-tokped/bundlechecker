@@ -16,7 +16,6 @@ extern crate napi_derive;
 pub struct CheckBundlerInput {
   pub config_path: String,
   pub compression: String,
-  pub reporter: String,
   pub silent: Option<bool>,
 }
 

@@ -115,14 +115,14 @@ impl Files {
     }
   }
 
-  fn get_brotli_size(&self, file_path: &str) -> Result<f64> {
+  fn get_brotli_size(&self, file_path: &str) -> Result<u64> {
     let f = std::fs::File::open(&file_path);
     match f {
       Ok(file) => {
         let mut buf = vec![];
         let mut writer = brotli::CompressorReader::with_params(file, 4096, &self.brotli_enc_params);
         let b_size = writer.read_to_end(&mut buf)?;
-        Ok(b_size as f64)
+        Ok(b_size as u64)
       }
       Err(_) => Err(anyhow!("{file_path} is not found")),
     }
@@ -165,7 +165,8 @@ impl Files {
         match self.compression {
           FileCompression::Brotli => {
             if let Some(p) = dir_entry.path().to_str() {
-              let actual_file_size = self.get_brotli_size(p)?;
+              let brotli_size = self.get_brotli_size(p)?;
+              let actual_file_size = self.convert_actual_size_unit(brotli_size, &file_unit)?;
               collected_files.lock().unwrap().insert(
                 f_name,
                 File {
@@ -225,7 +226,8 @@ impl Files {
 
       match self.compression {
         FileCompression::Brotli => {
-          let actual_file_size = self.get_brotli_size(path)?;
+          let brotli_size = self.get_brotli_size(path)?;
+          let actual_file_size = self.convert_actual_size_unit(brotli_size, &file_unit)?;
           collected_files.lock().unwrap().insert(
             f_name.to_string_lossy().to_string(),
             File {

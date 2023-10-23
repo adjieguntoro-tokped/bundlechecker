@@ -14,7 +14,6 @@ export interface AnalyzeReport {
 export interface CheckBundlerInput {
   configPath: string
   compression: string
-  reporter: string
   silent?: boolean
 }
 export interface BundleOutputSummary {

@@ -3,8 +3,7 @@ import { checkBundlerSync } from "../index.js";
 try {
   const { result, summary } = checkBundlerSync({
     configPath: "./package.json",
-    compression: "", // can be "brotli"
-    reporter: "",
+    compression: "brotli", // can be "brotli"
     silent: true,
   });
   console.log({ result, summary });
