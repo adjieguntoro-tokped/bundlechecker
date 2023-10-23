@@ -44,10 +44,10 @@ pub fn check_bundler_sync(input: CheckBundlerInput) -> Result<CheckBundlerOutput
     Ok(v) => {
       let result = analyze::Analyzer::new(v).analyze();
 
-      let mut silent_report = true;
-      if input.silent.is_some() {
-        silent_report = input.silent.unwrap();
-      }
+      let silent_report = match input.silent {
+        Some(v) => v,
+        None => false,
+      };
 
       let mut reporter = reporter::Report::new(silent_report);
       let report = reporter.report(&result);
