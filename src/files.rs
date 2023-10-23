@@ -156,7 +156,7 @@ impl Files {
       v.push(dir_entry);
     }
 
-    let _exec = v.par_iter().try_for_each(|dir_entry| -> Result<()> {
+    v.par_iter().try_for_each(|dir_entry| -> Result<()> {
       let f_meta = dir_entry.metadata()?;
       let file_unit = get_file_unit(&c.max_size);
 
@@ -260,7 +260,7 @@ impl Files {
 
   pub fn collect(&self) -> Result<fxhash::FxHashMap<String, File>> {
     let collected = Arc::new(Mutex::new(fxhash::FxHashMap::default()));
-    let _exec = self
+    self
       .bundlesize_config
       .par_iter()
       .try_for_each(|f| -> Result<()> {

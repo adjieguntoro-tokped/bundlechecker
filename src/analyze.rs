@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use crate::files;
 use rayon::prelude::*;
 
+#[napi(object)]
 #[derive(Debug, Clone)]
 pub struct AnalyzeReport {
   pub pass: bool,
@@ -62,6 +63,7 @@ impl Analyzer {
         );
       }
     });
+
     let result = analyze_result.lock().unwrap();
     result.to_owned()
   }

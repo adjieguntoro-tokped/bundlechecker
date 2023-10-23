@@ -1,8 +1,8 @@
 #![deny(clippy::all)]
 
-use std::process;
+use std::{process, sync::atomic::Ordering};
 
-use rayon::prelude::*;
+use napi::Result;
 
 mod analyze;
 mod config;
@@ -19,8 +19,22 @@ pub struct CheckBundlerInput {
   pub reporter: String,
 }
 
+#[napi(object)]
+pub struct BundleOutputSummary {
+  pub total: u32,
+  pub success: u32,
+  pub fail: u32,
+  pub error: u32,
+}
+
+#[napi(object)]
+pub struct CheckBundlerOutput {
+  pub summary: BundleOutputSummary,
+  pub result: fxhash::FxHashMap<String, analyze::AnalyzeReport>,
+}
+
 #[napi]
-pub fn check_bundler_sync(input: CheckBundlerInput) {
+pub fn check_bundler_sync(input: CheckBundlerInput) -> Result<CheckBundlerOutput> {
   let compression = files::get_file_compression(&input.compression);
   let config = config::get_config(&input.config_path);
 
@@ -28,37 +42,22 @@ pub fn check_bundler_sync(input: CheckBundlerInput) {
 
   match bundle_files {
     Ok(v) => {
-      let reporter = reporter::get_reporter(&input.reporter);
       let result = analyze::Analyzer::new(v).analyze();
+      let mut reporter = reporter::Report::new();
+      let report = reporter.report(&result);
 
-      if matches!(reporter, reporter::Reporter::StandardOutput) {
-        result.par_iter().for_each(|r| {
-          let (file_name, result) = r;
-          if result.pass {
-            println!(
-              "PASS {file_name}: {} {} < maxSize {} {} ({})",
-              result.actual_file_size,
-              result.size_unit,
-              result.budget_size,
-              result.size_unit,
-              result.compression
-            )
-          } else {
-            if result.error.is_some() {
-              println!("ERROR {}", result.error.as_ref().unwrap());
-            } else {
-              println!(
-                "PASS {file_name}: {} {} > maxSize {} {} ({})",
-                result.actual_file_size,
-                result.size_unit,
-                result.budget_size,
-                result.size_unit,
-                result.compression
-              )
-            }
-          }
-        })
-      }
+      let total = report.total;
+      let success = report.success.load(Ordering::SeqCst);
+      let fail = report.fail.load(Ordering::SeqCst);
+      let error = report.error.load(Ordering::SeqCst);
+
+      let summary = BundleOutputSummary {
+        total: total as u32,
+        success: success as u32,
+        fail: fail as u32,
+        error: error as u32,
+      };
+      Ok(CheckBundlerOutput { result, summary })
     }
     Err(e) => {
       eprintln!("error: {e}");
